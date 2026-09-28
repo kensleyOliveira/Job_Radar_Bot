@@ -1,0 +1,71 @@
+# ==========================================
+# Ficheiros de Ambiente e Segredos (CRÍTICO)
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Ambientes Virtuais Python
+# ==========================================
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==========================================
+# Bytecode e Cache do Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================================
+# Playwright / Browsers
+# ==========================================
+.playwright/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# ==========================================
+# Celery e Filas
+# ==========================================
+celerybeat-schedule
+celerybeat.pid
+
+# ==========================================
+# Bases de Dados e Volumes Locais
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+postgres_data/
+redis_data/
+
+# ==========================================
+# Editores e IDEs
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Logs e Depuração
+# ==========================================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

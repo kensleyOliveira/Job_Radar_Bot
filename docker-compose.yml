@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: job_radar_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-job_radar_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-job_radar_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: job_radar_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Container efêmero: roda a criação de tabelas e desliga
+  migration_init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job_radar_migration
+    restart: "no"
+    command: python -m app.init_db
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job_radar_bot
+    restart: always
+    command: python -m app.main
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migration_init:
+        condition: service_completed_successfully
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job_radar_worker
+    restart: always
+    command: celery -A app.infrastructure.tasks.celery_app worker --loglevel=info -c 2
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migration_init:
+        condition: service_completed_successfully
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job_radar_beat
+    restart: always
+    command: celery -A app.infrastructure.tasks.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      migration_init:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  redis_data:
