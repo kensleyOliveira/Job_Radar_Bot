@@ -1,4 +1,3 @@
-```markdown
 # 🎯 Radar de Vagas Pro (Job Radar Bot)
 
 Um ecossistema automatizado e inteligente para monitorização contínua de vagas de emprego no LinkedIn e portais do mercado, com enriquecimento de dados (faixa salarial, avaliação de cultura no Glassdoor, requisitos técnicos e cursos recomendados) e notificações instantâneas via Telegram.
