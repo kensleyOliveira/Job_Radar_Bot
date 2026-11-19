@@ -7,12 +7,12 @@ async def validate_tags(
         )
 
     async def enrich(self, job: Job, cargo: str | None = None) -> Job:
-        # 1. Extração de tags técnicas com base no cargo digitado + título/descrição
-        description = getattr(job, "description", "") or ""
-        job.technical_requirements = await self.validate_tags(
-            title=job.title, cargo=cargo, description=description
-        )
-
+        # 1. Reaproveita os requisitos técnicos já extraídos pelo LinkedInScraperService
+        if not getattr(job, "technical_requirements", None):
+            description = getattr(job, "description", "") or ""
+            job.technical_requirements = await self.validate_tags(
+                title=job.title, cargo=cargo, description=description
+            )
         # 2. Raspagem concorrente de remuneração e reputação de cultura
         salary_task = self.market_culture_scraper.get_salary_market(job.title)
         culture_task = self.market_culture_scraper.get_company_culture(job.company_name)
