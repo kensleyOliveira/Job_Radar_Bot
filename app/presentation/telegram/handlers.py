@@ -63,7 +63,7 @@ async def process_duration_selection(callback: CallbackQuery, state: FSMContext)
     from app.infrastructure.repositories.sql_subscription_repository import SqlSubscriptionRepository
     from app.infrastructure.repositories.sql_job_repository import SqlJobRepository
     from app.infrastructure.scrapers.linkedin_scraper import LinkedInScraperService
-    from app.infrastructure.services.enrichment_service_B import DataEnrichmentService
+    from app.infrastructure.services.enrichment_service import DataEnrichmentService
     from app.infrastructure.telegram.bot_service import TelegramNotificationService
     from app.application.use_cases.subscribe_role import SubscribeRoleUseCase
 
