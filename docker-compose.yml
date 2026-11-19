@@ -1,4 +1,49 @@
-bot:
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: job_radar_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${DB_NAME:-job_radar_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d job_radar_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: job_radar_redis
+    restart: always
+    # Não expomos a porta para o Windows a fim de evitar conflitos de porta bloqueada
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migration_init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job_radar_migration
+    restart: "no"
+    command: python -m app.init_db
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  bot:
     build:
       context: .
       dockerfile: Dockerfile
@@ -36,3 +81,20 @@ bot:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job_radar_beat
+    restart: always
+    command: celery -A app.infrastructure.tasks.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
